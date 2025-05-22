@@ -1,0 +1,31 @@
+#include <Arduino.h>
+
+// Define the analog pin connected to the potentiometer
+const int potentiometerPin = 34; // GPIO34 (ADC1 channel)
+
+// Variable to store the ADC value
+int adcValue = 0;
+
+void setup()
+{
+    // Initialize serial communication for debugging
+    Serial.begin(9600);
+}
+
+void loop()
+{
+    // Read the analog value from the potentiometer
+    adcValue = analogRead(potentiometerPin);
+
+    // Convert the ADC value to voltage (0–3.3V)
+    float voltage = adcValue * (3.3 / 4095.0);
+
+    // Print the ADC value and voltage to the Serial Monitor
+    Serial.print("ADC Value: ");
+    Serial.print(adcValue);
+    Serial.print(" | Voltage: ");
+    Serial.println(voltage);
+
+    // Add a small delay
+    delay(500);
+}
