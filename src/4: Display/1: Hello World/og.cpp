@@ -1,39 +1,36 @@
 #include <Arduino.h>
 #include <LiquidCrystal.h>
 
-// Define the pins connected to the LCD
-const int rs = 13; // Register Select pin
-const int en = 12; // Enable pin
+// LCD pin connections
+const int rs = 13; // Register Select
+const int en = 12; // Enable
 const int d4 = 14; // Data pin 4
 const int d5 = 27; // Data pin 5
 const int d6 = 26; // Data pin 6
 const int d7 = 25; // Data pin 7
 
-// Initialize the LiquidCrystal object with the ESP32 pins
+// Initialize LCD with pin connections
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 void setup()
 {
-    // Start Serial for debugging
+    // Initialize communication
     Serial.begin(9600);
     Serial.println("ESP32 LCD Test");
 
-    // Initialize the LCD
+    // Initialize display
     lcd.begin(16, 2);
 
-    // Test the display with different patterns
-    // This helps identify if the display is working but contrast is wrong
-
-    // Fill the screen with blocks (all pixels on)
+    // Test pattern - filled blocks
     lcd.clear();
     for (int i = 0; i < 32; i++)
     {
-        lcd.write(255); // Character code 255 is a solid block on most LCD displays
+        lcd.write(255); // Solid block character
     }
     Serial.println("Display filled with blocks");
     delay(2000);
 
-    // Clear and show text
+    // Display test message
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Hello World");
@@ -44,20 +41,20 @@ void setup()
 
 void loop()
 {
-    // In the loop, we'll show a counter to verify the display is updating
+    // Update counter every second to verify display
     static unsigned long lastUpdate = 0;
     static int counter = 0;
 
-    // Update counter every second
     if (millis() - lastUpdate >= 1000)
     {
         lastUpdate = millis();
         counter++;
 
+        // Display updated counter
         lcd.setCursor(0, 1);
         lcd.print("Counter: ");
         lcd.print(counter);
-        lcd.print("   "); // Clear any remaining characters
+        lcd.print("   "); // Clear extra digits
 
         Serial.print("Counter updated: ");
         Serial.println(counter);

@@ -1,32 +1,16 @@
-/*
-  SparkFun Inventor's Kit - Modified for ESP32
-  Circuit 2C-Simon Says
-
-  The Simon Says game flashes a pattern using LED lights, then the player must repeat the pattern.
-  This version includes a 10-segment level display to show the current round.
-
-  This sketch was written by SparkFun Electronics, with lots of help from the Arduino community.
-  This code is completely free for any use.
-
-  View circuit diagram and instructions at: https://learn.sparkfun.com/tutorials/sparkfun-inventors-kit-experiment-guide---v40
-  Download drawings and code at: https://github.com/sparkfun/SIK-Guide-Code
-*/
+// ESP32 Simon Says Game with 10-Segment Level Display
+// The game flashes a pattern using LED lights, then the player must repeat the pattern.
+// This version includes a 10-segment level display to show the current round.
 
 #include <Arduino.h>
 
-// set the pins where the buttons, LEDs and buzzer connect
-int button[] = {
-    4,
-    13,
-    14,
-    33,
-}; // red is button[0], yellow is button[1], green is button[2], blue is button[3]
-int led[] = {5, 12, 18, 22};        // red is led[0], yellow is led[1], green is led[2], blue is led[3]
-int tones[] = {262, 330, 392, 494}; // tones to play with each button (c, e, g, b)
+// Pin definitions for buttons, LEDs and buzzer
+int button[] = {4, 13, 14, 33}; // Red, yellow, green, blue buttons
+int led[] = {5, 12, 18, 22};    // Red, yellow, green, blue LEDs
+int tones[] = {262, 330, 392, 494}; // C, E, G, B tones
 
-// Pins for the 10-segment level display (rerouted for ESP32)
-// Using alternate pins for segments 3 and 4 to avoid potential issues
-int levelDisplayPins[] = {2, 15, 3, 0, 19, 21, 23, 26, 27, 32}; // Changed pins 17->36 and 19->39
+// Pins for the 10-segment level display
+int levelDisplayPins[] = {2, 15, 3, 0, 19, 21, 23, 26, 27, 32};
 
 int roundsToWin = 10;   // number of rounds the player has to play before they win the game (the array can only hold up to 16 rounds)
 int buttonSequence[16]; // make an array of numbers that will be the sequence that the player needs to remember
@@ -53,23 +37,19 @@ void testLevelDisplay();   // Function to test all segments of the level display
 
 void setup()
 {
-    // Initialize serial for debugging
-    // Serial.begin(115200);
-    // Serial.println("Simon Says game starting up...");
-
-    // set all of the button pins to input_pullup (use the built-in pull-up resistors)
+    // Configure button pins with internal pull-up resistors
     pinMode(button[0], INPUT_PULLUP);
     pinMode(button[1], INPUT_PULLUP);
     pinMode(button[2], INPUT_PULLUP);
     pinMode(button[3], INPUT_PULLUP);
 
-    // set all of the LED pins to output
+    // Configure LED pins as outputs
     pinMode(led[0], OUTPUT);
     pinMode(led[1], OUTPUT);
     pinMode(led[2], OUTPUT);
     pinMode(led[3], OUTPUT);
 
-    // Set all level display pins to output
+    // Configure level display pins as outputs
     for (int i = 0; i < 10; i++)
     {
         pinMode(levelDisplayPins[i], OUTPUT);
@@ -80,10 +60,8 @@ void setup()
     // Test the level display segments
     testLevelDisplay();
 
-    pinMode(buzzerPin, OUTPUT); // set the buzzer pin to output
-
-    // Serial.println("Setup complete");
-
+    pinMode(buzzerPin, OUTPUT); // Configure buzzer pin as output
+    
     pinMode(3, OUTPUT);
     digitalWrite(3, LOW);
 }
@@ -91,63 +69,59 @@ void setup()
 void loop()
 {
     if (gameStarted == false)
-    { // if the game hasn't started yet
-        // Serial.println("Starting new game");
-        startSequence();      // flash the start sequence
-        roundCounter = 0;     // reset the round counter
-        clearLevelDisplay();  // Clear the display first
-        updateLevelDisplay(); // Update the level display
-        delay(1500);          // wait a second and a half
-        gameStarted = true;   // set gameStarted to true so that this sequence doesn't start again
+    { 
+        startSequence();      // Play start sequence
+        roundCounter = 0;     // Reset round counter
+        clearLevelDisplay();  // Clear level display
+        updateLevelDisplay(); // Update level display
+        delay(1500);
+        gameStarted = true;
     }
 
-    // each round, start by flashing out the sequence to be repeated
+    // Flash the sequence to be repeated
     for (int i = 0; i <= roundCounter; i++)
-    {                                // go through the array up to the current round number
-        flashLED(buttonSequence[i]); // turn on the LED for that array position and play the sound
-        delay(200);                  // wait
-        allLEDoff();                 // turn all of the LEDs off
+    {
+        flashLED(buttonSequence[i]); // Flash LED and play tone
+        delay(200);
+        allLEDoff();
         delay(200);
     }
 
-    // then start going through the sequence one at a time and see if the user presses the correct button
+    // Check player's button presses against the sequence
     for (int i = 0; i <= roundCounter; i++)
-    { // for each button to be pressed in the sequence
-
-        startTime = millis(); // record the start time
+    {
+        startTime = millis();
 
         while (gameStarted == true)
-        { // loop until the player presses a button or the time limit is up (the time limit check is in an if statement)
-
-            pressedButton = buttonCheck(); // every loop check to see which button is pressed
+        {
+            pressedButton = buttonCheck();
 
             if (pressedButton < 4)
-            { // if a button is pressed... (4 means that no button is pressed)
-
-                flashLED(pressedButton); // flash the LED for the button that was pressed
+            { // Button is pressed
+                flashLED(pressedButton);
 
                 if (pressedButton == buttonSequence[i])
-                {                // if the button matches the button in the sequence
-                    delay(250);  // leave the LED light on for a moment
-                    allLEDoff(); // then turn off all of the lights and
-                    break;       // end the while loop (this will go to the next number in the for loop)
+                { // Correct button
+                    delay(250);
+                    allLEDoff();
+                    break;
                 }
                 else
-                {                   // if the button doesn't match the button in the sequence
-                    loseSequence(); // play the lose sequence (the loose sequence stops the program)
-                    break;          // when the program gets back from the lose sequence, break the while loop so that the game can start over
+                { // Wrong button
+                    loseSequence();
+                    break;
                 }
             }
             else
-            {                // if no button is pressed
-                allLEDoff(); // turn all the LEDs off
+            {
+                allLEDoff();
             }
 
-            // check to see if the time limit is up
+            // Check time limit
             if (millis() - startTime > timeLimit)
-            {                   // if the time limit is up
-                loseSequence(); // play the lose sequence
-                break;          // when the program gets back from the lose sequence, break the while loop so that the game can start over
+            {
+                loseSequence();
+                break;
             }
         }
     }
@@ -169,42 +143,39 @@ void loop()
     }
 }
 
-// TEST LEVEL DISPLAY - Light up each segment in sequence
+// Test the level display segments
 void testLevelDisplay()
 {
-    // Serial.println("Testing level display segments...");
-
-    // First, make sure all segments are off
     clearLevelDisplay();
     delay(300);
 
-    // Light up each segment one by one with a tone
+    // Light each segment with ascending tones
     for (int i = 0; i < 10; i++)
     {
         digitalWrite(levelDisplayPins[i], HIGH);
-        tone(buzzerPin, 200 + (i * 100), 100); // Play ascending tones
+        tone(buzzerPin, 200 + (i * 100), 100);
         delay(400);
     }
 
-    // Then turn them all off one by one
+    // Turn off segments with descending tones
     for (int i = 9; i >= 0; i--)
     {
         digitalWrite(levelDisplayPins[i], LOW);
-        tone(buzzerPin, 1200 - (i * 100), 100); // Play descending tones
+        tone(buzzerPin, 1200 - (i * 100), 100);
         delay(150);
     }
 
-    // Light up all LEDs in waves (3 times)
+    // Wave pattern (3 times)
     for (int wave = 0; wave < 3; wave++)
     {
-        // Light them up in sequence
+        // Light up in sequence
         for (int i = 0; i < 10; i++)
         {
             digitalWrite(levelDisplayPins[i], HIGH);
             delay(50);
         }
 
-        // Turn them off in sequence
+        // Turn off in sequence
         for (int i = 0; i < 10; i++)
         {
             digitalWrite(levelDisplayPins[i], LOW);
@@ -212,10 +183,10 @@ void testLevelDisplay()
         }
     }
 
-    // Alternate pattern (odd/even)
+    // Alternate odd/even pattern
     for (int i = 0; i < 3; i++)
     {
-        // Light up odd segments
+        // Light odd segments
         for (int j = 1; j < 10; j += 2)
         {
             digitalWrite(levelDisplayPins[j], HIGH);
@@ -223,7 +194,7 @@ void testLevelDisplay()
         tone(buzzerPin, 500, 100);
         delay(250);
 
-        // Turn off odd, light up even
+        // Switch to even segments
         for (int j = 0; j < 10; j++)
         {
             digitalWrite(levelDisplayPins[j], j % 2 == 0);
@@ -232,182 +203,154 @@ void testLevelDisplay()
         delay(250);
     }
 
-    // Final cleanup - all off
     clearLevelDisplay();
     delay(500);
-
-    // Serial.println("Level display test complete");
 }
 
-// CLEAR LEVEL DISPLAY
+// Clear all segments of the level display
 void clearLevelDisplay()
 {
-    // Turn off all segments
     for (int i = 0; i < 10; i++)
     {
         digitalWrite(levelDisplayPins[i], LOW);
     }
     noTone(buzzerPin);
-    delay(50); // Small delay to ensure pins settle
+    delay(50);
 }
 
-// UPDATE LEVEL DISPLAY
+// Update the level display to show current round
 void updateLevelDisplay()
 {
-    // Turn on the number of segments corresponding to the current level
     for (int i = 0; i < 10; i++)
     {
-        if (i < roundCounter)
-        {
-            digitalWrite(levelDisplayPins[i], HIGH);
-        }
-        else
-        {
-            digitalWrite(levelDisplayPins[i], LOW);
-        }
+        digitalWrite(levelDisplayPins[i], i < roundCounter ? HIGH : LOW);
     }
 }
 
-//----------FUNCTIONS------------
+// Core game functions
 
-// FLASH LED
+// Flash LED and play corresponding tone
 void flashLED(int ledNumber)
 {
     digitalWrite(led[ledNumber], HIGH);
     tone(buzzerPin, tones[ledNumber]);
 }
 
-// TURN ALL LEDS OFF
+// Turn all LEDs off and stop sound
 void allLEDoff()
 {
-    // turn all the LEDs off
     digitalWrite(led[0], LOW);
     digitalWrite(led[1], LOW);
     digitalWrite(led[2], LOW);
     digitalWrite(led[3], LOW);
-    // turn the buzzer off
     noTone(buzzerPin);
 }
 
-// CHECK WHICH BUTTON IS PRESSED
+// Check which button is currently pressed
 int buttonCheck()
 {
-    // check if any buttons are being pressed
     if (digitalRead(button[0]) == LOW)
-    {
         return 0;
-    }
     else if (digitalRead(button[1]) == LOW)
-    {
         return 1;
-    }
     else if (digitalRead(button[2]) == LOW)
-    {
         return 2;
-    }
     else if (digitalRead(button[3]) == LOW)
-    {
         return 3;
-    }
     else
-    {
-        return 4; // this will be the value for no button being pressed
-    }
+        return 4; // No button pressed
 }
 
-// START SEQUENCE
+// Game start sequence
 void startSequence()
 {
-    // For ESP32, use a different analog pin instead of A0
-    randomSeed(analogRead(34)); // make sure the random numbers are really random (use an available analog pin)
-
-    // populate the buttonSequence array with random numbers from 0 to 3
+    // Generate random pattern
+    randomSeed(analogRead(34));
+    
     for (int i = 0; i <= roundsToWin; i++)
     {
         buttonSequence[i] = round(random(0, 4));
     }
 
-    // flash all of the LEDs when the game starts
+    // Flash startup animation
     for (int i = 0; i <= 3; i++)
     {
-        tone(buzzerPin, tones[i], 200); // play one of the 4 tones
+        tone(buzzerPin, tones[i], 200);
 
-        // turn all of the leds on
-        digitalWrite(led[0], HIGH);
-        digitalWrite(led[1], HIGH);
-        digitalWrite(led[2], HIGH);
-        digitalWrite(led[3], HIGH);
-
-        delay(100); // wait for a moment
-
-        // turn all of the leds off
-        digitalWrite(led[0], LOW);
-        digitalWrite(led[1], LOW);
-        digitalWrite(led[2], LOW);
-        digitalWrite(led[3], LOW);
-
-        delay(100); // wait for a moment
-    } // this will repeat 4 times
+        // Turn all LEDs on
+        for (int j = 0; j < 4; j++) {
+            digitalWrite(led[j], HIGH);
+        }
+        
+        delay(100);
+        
+        // Turn all LEDs off
+        for (int j = 0; j < 4; j++) {
+            digitalWrite(led[j], LOW);
+        }
+        
+        delay(100);
+    }
 }
 
-// WIN SEQUENCE
+// Game win sequence
 void winSequence()
 {
-    // turn all the LEDs on
+    // Turn all LEDs on
     for (int j = 0; j <= 3; j++)
     {
         digitalWrite(led[j], HIGH);
     }
 
-    // play the 1Up noise
-    tone(buzzerPin, 1318, 150); // E6
+    // Play win melody
+    tone(buzzerPin, 1318, 150);
     delay(175);
-    tone(buzzerPin, 1567, 150); // G6
+    tone(buzzerPin, 1567, 150);
     delay(175);
-    tone(buzzerPin, 2637, 150); // E7
+    tone(buzzerPin, 2637, 150);
     delay(175);
-    tone(buzzerPin, 2093, 150); // C7
+    tone(buzzerPin, 2093, 150);
     delay(175);
-    tone(buzzerPin, 2349, 150); // D7
+    tone(buzzerPin, 2349, 150);
     delay(175);
-    tone(buzzerPin, 3135, 500); // G7
+    tone(buzzerPin, 3135, 500);
     delay(500);
 
-    // wait until a button is pressed
+    // Wait for button press to restart
     do
     {
         pressedButton = buttonCheck();
     } while (pressedButton > 3);
     delay(100);
 
-    gameStarted = false; // reset the game so that the start sequence will play again.
+    gameStarted = false;
 }
 
-// LOSE SEQUENCE
+// Game lose sequence
 void loseSequence()
 {
-    // turn all the LEDs on
+    // Turn all LEDs on
     for (int j = 0; j <= 3; j++)
     {
         digitalWrite(led[j], HIGH);
     }
 
-    // play the 1Up noise
-    tone(buzzerPin, 130, 250); // E6
+    // Play lose melody
+    tone(buzzerPin, 130, 250);
     delay(275);
-    tone(buzzerPin, 73, 250); // G6
+    tone(buzzerPin, 73, 250);
     delay(275);
-    tone(buzzerPin, 65, 150); // E7
+    tone(buzzerPin, 65, 150);
     delay(175);
-    tone(buzzerPin, 98, 500); // C7
+    tone(buzzerPin, 98, 500);
     delay(500);
 
-    // wait until a button is pressed
+    // Wait for button press to restart
     do
     {
         pressedButton = buttonCheck();
     } while (pressedButton > 3);
     delay(200);
 
-    gameStarted = false; // reset the game so that the start sequence will play again.
+    gameStarted = false;
 }

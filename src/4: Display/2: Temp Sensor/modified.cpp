@@ -1,69 +1,56 @@
-/*
-  SparkFun Inventor's Kit
-  Circuit 4B - Temperature Sensor with Alarm
+// ESP32 Temperature Sensor with Alarm
+// Displays temperature readings in Celsius and Fahrenheit
+// Sounds alarm when temperature exceeds threshold
 
-  The LCD will display readings from a temperature sensor in degrees Celsius and Fahrenheit.
-  An alarm will sound when the temperature exceeds 25°C.
+#include <Arduino.h>
+#include <LiquidCrystal.h> // Library for controlling LCD display
 
-  Adapted for ESP32 from original SparkFun Electronics code.
-*/
+// LCD pin connections (RS, EN, D4, D5, D6, D7)
+LiquidCrystal lcd(13, 12, 14, 27, 26, 25);
 
-#include <Arduino.h>       // Include the Arduino library
-#include <LiquidCrystal.h> // The liquid crystal library contains commands for printing to the display
+// Pin connections
+const int tempSensorPin = 34; // TMP36 temperature sensor
+const int buzzerPin = 22;     // Buzzer output
 
-// Define the pins connected to the LCD for ESP32
-// RS, EN, D4, D5, D6, D7
-LiquidCrystal lcd(13, 12, 14, 27, 26, 25); // Tell the ESP32 what pins are connected to the display
+// Alarm threshold
+const float alarmTemperature = 25.0; // Celsius
 
-// Define temperature sensor pin
-const int tempSensorPin = 34; // Connect TMP36 sensor to GPIO34 (ADC1_CH6)
+float voltage = 0;  // Sensor voltage
+float degreesC = 0; // Temperature in Celsius
+float degreesF = 0; // Temperature in Fahrenheit
 
-// Define buzzer pin
-const int buzzerPin = 22; // Connect buzzer to GPIO22
-
-// Temperature threshold for alarm
-const float alarmTemperature = 25.0; // Alarm triggers when temperature exceeds 25°C
-
-float voltage = 0;  // The voltage measured from the TMP36
-float degreesC = 0; // The temperature in Celsius, calculated from the voltage
-float degreesF = 0; // The temperature in Fahrenheit, calculated from the voltage
-
-// Function prototype declaration
+// Function prototype
 void soundAlarm();
 
 void setup()
 {
-    lcd.begin(16, 2); // Tell the lcd library that we are using a display that is 16x2
-    lcd.clear();      // Clear the display
+    lcd.begin(16, 2);
+    lcd.clear();
 
-    // Initialize serial communication for debugging
     Serial.begin(9600);
     Serial.println("ESP32 Temperature Sensor with Alarm");
 
-    // Set up the buzzer pin as an output
     pinMode(buzzerPin, OUTPUT);
-    digitalWrite(buzzerPin, LOW); // Ensure buzzer is off at startup
+    digitalWrite(buzzerPin, LOW);
 
-    // ESP32 ADC setup
-    analogSetWidth(12);             // Set ADC resolution to 12 bits (0-4095)
-    analogSetAttenuation(ADC_11db); // Set ADC attenuation for full 3.3V range
+    // Configure ADC
+    analogSetWidth(12);             // 12-bit resolution (0-4095)
+    analogSetAttenuation(ADC_11db); // Full 3.3V range
 }
 
 void loop()
 {
-    // Read the analog value from the temperature sensor
+    // Read temperature sensor
     int sensorValue = analogRead(tempSensorPin);
-
-    // Convert the analog reading (0-4095) to a voltage (0-3.3V)
+    
+    // Convert reading to voltage
     voltage = sensorValue * (3.3 / 4095.0);
-
-    // Convert the voltage to a temperature in degrees Celsius
+    
+    // Calculate temperature values
     degreesC = ((voltage - 0.5) * 100.0) + 14;
-
-    // Convert Celsius to Fahrenheit
     degreesF = degreesC * (9.0 / 5.0) + 32.0;
 
-    // Debug output
+    // Output values to serial
     Serial.print("Sensor value: ");
     Serial.print(sensorValue);
     Serial.print(", Voltage: ");
@@ -75,37 +62,34 @@ void loop()
     Serial.println("°F");
 
     // Display temperature on LCD
-    lcd.clear(); // Clear the LCD
+    lcd.clear();
 
-    lcd.setCursor(0, 0);      // Set the cursor to the top left position
-    lcd.print("Degrees C: "); // Print a label for the data
-    lcd.print(degreesC, 1);   // Print the degrees Celsius with 1 decimal place
+    lcd.setCursor(0, 0);
+    lcd.print("Degrees C: ");
+    lcd.print(degreesC, 1);
 
-    lcd.setCursor(0, 1);      // Set the cursor to the lower left position
-    lcd.print("Degrees F: "); // Print a label for the data
-    lcd.print(degreesF, 1);   // Print the degrees Fahrenheit with 1 decimal place
+    lcd.setCursor(0, 1);
+    lcd.print("Degrees F: ");
+    lcd.print(degreesF, 1);
 
-    // Check if temperature exceeds the alarm threshold
+    // Check for alarm condition
     if (degreesC > alarmTemperature)
     {
-        // Temperature is above threshold - trigger alarm
-        lcd.setCursor(14, 0); // Set cursor near the end of the top line
-        lcd.print("!");       // Display an exclamation mark to indicate alarm
-        soundAlarm();         // Sound the alarm
+        lcd.setCursor(14, 0);
+        lcd.print("!"); // Alarm indicator
+        soundAlarm();
     }
     else
     {
-        // Temperature is below threshold - alarm off
-        digitalWrite(buzzerPin, LOW); // Make sure buzzer is off
+        digitalWrite(buzzerPin, LOW);
     }
 
-    delay(1000); // Delay for 1 second between readings
+    delay(1000); // Update interval
 }
 
-// Function to sound the alarm
+// Sound alarm with beep pattern
 void soundAlarm()
 {
-    // Beep pattern for the alarm
     digitalWrite(buzzerPin, HIGH);
     delay(300);
     digitalWrite(buzzerPin, LOW);

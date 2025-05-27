@@ -1,45 +1,34 @@
-/*
-  SparkFun Inventor’s Kit
-  Circuit 2B-ButtonTrumpet
-
-  Use 3 buttons plugged to play musical notes on a buzzer.
-
-  This sketch was written by SparkFun Electronics, with lots of help from the Arduino community.
-  This code is completely free for any use.
-
-  View circuit diagram and instructions at: https://learn.sparkfun.com/tutorials/sparkfun-inventors-kit-experiment-guide---v40
-  Download drawings and code at: https://github.com/sparkfun/SIK-Guide-Code
-*/
+// ESP32 Button Trumpet - Play different tones with button presses
 
 #include <Arduino.h>
 
-// set the pins for the button and buzzer
-int firstKeyPin = 13;
-int secondKeyPin = 33;
-int thirdKeyPin = 14;
+// Pin definitions
+int firstKeyPin = 13;  // First button
+int secondKeyPin = 33; // Second button
+int thirdKeyPin = 14;  // Third button
 
-int buzzerPin = 25;
+int buzzerPin = 25;    // Buzzer output
 
 void playTone(int freq)
 {
-    ledcSetup(0, freq, 8);       // Channel 0, frequency, 8-bit resolution
-    ledcAttachPin(buzzerPin, 0); // Attach buzzer pin to channel 0
-    ledcWrite(0, 127);           // 50% duty cycle (127/255)
+    ledcSetup(0, freq, 8);       // Configure PWM channel
+    ledcAttachPin(buzzerPin, 0); // Connect buzzer to PWM channel
+    ledcWrite(0, 127);           // 50% duty cycle
 }
 
 void stopTone()
 {
-    ledcDetachPin(buzzerPin);
+    ledcDetachPin(buzzerPin);    // Disconnect buzzer from PWM
 }
 
 void setup()
 {
-    // set the button pins as inputs
+    // Configure button pins with pull-up resistors
     pinMode(firstKeyPin, INPUT_PULLUP);
     pinMode(secondKeyPin, INPUT_PULLUP);
     pinMode(thirdKeyPin, INPUT_PULLUP);
 
-    // set the buzzer pin as an output
+    // Configure buzzer pin as output
     pinMode(buzzerPin, OUTPUT);
     Serial.begin(9600);
     Serial.println("ESP32 started");
@@ -47,35 +36,26 @@ void setup()
 
 void loop()
 {
+    // Check which button is pressed and play corresponding tone
     if (digitalRead(firstKeyPin) == LOW)
     {
-        playTone(262); // C
+        playTone(262); // Play C note
         Serial.println("C");
     }
     else if (digitalRead(secondKeyPin) == LOW)
     {
-        playTone(330); // E
+        playTone(330); // Play E note
         Serial.println("E");
     }
     else if (digitalRead(thirdKeyPin) == LOW)
     {
-        playTone(392); // G
+        playTone(392); // Play G note
         Serial.println("G");
     }
     else
     {
-        stopTone();
+        stopTone(); // Stop sound when no buttons are pressed
     }
 }
 
-/*
-  note  frequency
-  c     262 Hz
-  d     294 Hz
-  e     330 Hz
-  f     349 Hz
-  g     392 Hz
-  a     440 Hz
-  b     494 Hz
-  C     523 Hz
-*/
+// Note frequencies in Hz: c=262, d=294, e=330, f=349, g=392, a=440, b=494, C=523

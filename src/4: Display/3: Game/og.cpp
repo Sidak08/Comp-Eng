@@ -1,33 +1,24 @@
-/*
-  SparkFun Inventor's Kit - Modified for ESP32
-  Circuit 4C - Heads Up Game
-
-  This is a DIY version of the popular Heads Up party game. To play, one person resets the ESP32 and holds the LCD
-  facing away from them so that they cannot see it (usually on their forehead). The display will show a short countdown
-  then display random words. The other player(s) who can see the screen must yell out clues until time runs out or the player
-  guesses what word is on the screen. If they guess correctly, they can press the button on the breadboard and another word
-  will be displayed.
-
-  Adapted for ESP32 from original SparkFun Electronics code.
-*/
+// ESP32 Heads Up Game
+// Shows random animal words on LCD with button input to advance
+// Player holds LCD away from them while others give clues
 
 #include <Arduino.h>
-#include <LiquidCrystal.h> // The liquid crystal library contains commands for printing to the display
+#include <LiquidCrystal.h> // Library for controlling LCD display
 
-// Define the pins connected to the LCD for ESP32
-// RS, EN, D4, D5, D6, D7
-LiquidCrystal lcd(13, 12, 14, 27, 26, 25); // Tell the ESP32 what pins are connected to the display
+// LCD pin connections (RS, EN, D4, D5, D6, D7)
+LiquidCrystal lcd(13, 12, 14, 27, 26, 25);
 
-const int buttonPin = 22; // Pin that the button is connected to
-const int buzzerPin = 23; // Pin for driving the buzzer
-int buttonPressTime = 0;  // Variable to show how much time the player has left to guess the word (and press the button)
+// Pin definitions
+const int buttonPin = 22; // Button input
+const int buzzerPin = 23; // Buzzer output
+int buttonPressTime = 0;  // Button timing
 
 long timeLimit = 15000; // Time limit for the player to guess each word (15 seconds)
 long startTime = 0;     // Used to measure time that has passed for each word
 int roundNumber = 0;    // Keeps track of the roundNumber so that it can be displayed at the end of the game
 const int arraySize = 25;
 
-// Array of words to be displayed
+// Animal word list
 const char *words[arraySize] = {
     "moose", "beaver", "bear", "goose", "dog",
     "cat", "squirrel", "bird", "elephant", "horse",
@@ -35,9 +26,8 @@ const char *words[arraySize] = {
     "turtle", "whale", "rhino", "lion", "monkey",
     "frog", "alligator", "kangaroo", "hippo", "rabbit"};
 
-// The start value in the sequence array must have a value that could never be an index of an array
-// or at least a value outside the range of 0 to the size of the words array - 1
-int sequence[arraySize]; // Will be filled with random indices
+// Array to hold randomized sequence of word indices
+int sequence[arraySize];
 
 // Function prototypes
 void showStartSequence();
@@ -47,79 +37,77 @@ void winner();
 
 void setup()
 {
-    pinMode(buttonPin, INPUT_PULLUP); // Set the button pin as an input with pullup
+    pinMode(buttonPin, INPUT_PULLUP);
 
-    // Initialize the LCD
-    lcd.begin(16, 2); // Tell the LCD library the size of the screen
+    lcd.begin(16, 2);
 
-    Serial.begin(9600); // Initialize serial communication for debugging
+    Serial.begin(9600);
     Serial.println("ESP32 Heads Up Game");
 
-    // Initialize the sequence array with -1 values
+    // Initialize sequence array
     for (int i = 0; i < arraySize; i++)
     {
         sequence[i] = -1;
     }
 
-    // Reset the random seed for better randomness
-    randomSeed(analogRead(34)); // Use an unconnected analog pin for noise
+    // Initialize random generator
+    randomSeed(analogRead(34));
 
-    generateRandomOrder(); // Generate an array of random numbers from 0 to 24
-    showStartSequence();   // Print the start sequence text
+    generateRandomOrder();
+    showStartSequence();
 }
 
 void loop()
 {
     for (int i = 0; i < arraySize; i++)
-    {                // For each of the 25 words in the sequence
-        lcd.clear(); // Clear the screen
+    {
+        lcd.clear();
 
-        roundNumber = i + 1;           // The array starts at 0, but the roundNumber starts counting from 1
-        lcd.print(roundNumber);        // Print the current round number
-        lcd.print(": ");               // Spacer between the number and the word
-        lcd.print(words[sequence[i]]); // Print a random word from the word array
+        roundNumber = i + 1;
+        lcd.print(roundNumber);
+        lcd.print(": ");
+        lcd.print(words[sequence[i]]);
 
         Serial.print("Round ");
         Serial.print(roundNumber);
         Serial.print(": ");
-        Serial.println(words[sequence[i]]); // Debug output
+        Serial.println(words[sequence[i]]);
 
-        startTime = millis(); // Record the time that this round started
+        startTime = millis();
 
-        // Loop until the button is pressed
+        // Wait for button press or timeout
         while (digitalRead(buttonPin) == HIGH)
         {
-            int roundedTime = round((timeLimit - (millis() - startTime)) / 1000); // Calculate time left in seconds
-            lcd.setCursor(14, 1);                                                 // Set the cursor in the lower right corner of the screen
-            lcd.print("  ");                                                      // Clear the previous time
+            int roundedTime = round((timeLimit - (millis() - startTime)) / 1000);
             lcd.setCursor(14, 1);
-            lcd.print(roundedTime); // Print the time left
-            delay(15);              // Small delay for stability
+            lcd.print("  ");
+            lcd.setCursor(14, 1);
+            lcd.print(roundedTime);
+            delay(15);
 
-            // Check if time is up
+            // Check for timeout
             if (millis() - startTime > timeLimit)
             {
-                gameOver(); // End the game if time runs out
+                gameOver();
             }
 
-            // Beep when button is pressed
+            // Button feedback
             if (digitalRead(buttonPin) == LOW)
             {
-                tone(buzzerPin, 272, 10); // Emit a short beep
+                tone(buzzerPin, 272, 10);
             }
         }
 
-        // Button was pressed, wait before continuing to next word
-        delay(500); // Prevent button bounce
+        delay(500); // Debounce delay
     }
 
-    // If all 25 words are completed
-    winner(); // Show the winning message
+    // All words completed successfully
+    winner();
 }
 
 //--------------FUNCTIONS------------------------------
 
-// DISPLAYS A COUNTDOWN TO START THE GAME
+// Game startup sequence with countdown
 void showStartSequence()
 {
     lcd.clear();
@@ -146,7 +134,7 @@ void showStartSequence()
     delay(1000);
 }
 
-// GENERATES A RANDOM ORDER FOR THE WORDS TO BE DISPLAYED
+// Create randomized word order sequence
 void generateRandomOrder()
 {
     Serial.println("Generating random order...");
@@ -180,7 +168,7 @@ void generateRandomOrder()
     Serial.println(); // End of sequence debug output
 }
 
-// GAME OVER
+// Handle game over condition
 void gameOver()
 {
     lcd.clear();
@@ -193,22 +181,22 @@ void gameOver()
     Serial.print("Game Over! Final Score: ");
     Serial.println(roundNumber);
 
-    // Play the losing fog horn
-    tone(buzzerPin, 130, 250); // E6
+    // Play lose melody
+    tone(buzzerPin, 130, 250);
     delay(275);
-    tone(buzzerPin, 73, 250); // G6
+    tone(buzzerPin, 73, 250);
     delay(275);
-    tone(buzzerPin, 65, 150); // E7
+    tone(buzzerPin, 65, 150);
     delay(175);
-    tone(buzzerPin, 98, 500); // C7
+    tone(buzzerPin, 98, 500);
     delay(500);
 
     while (true)
     {
-    } // Get stuck in this loop forever
+    } // Loop indefinitely
 }
 
-// WINNER
+// Handle game win condition
 void winner()
 {
     lcd.clear();
@@ -219,21 +207,21 @@ void winner()
 
     Serial.println("YOU WIN!");
 
-    // Play the 1Up noise
-    tone(buzzerPin, 1318, 150); // E6
+    // Play win melody
+    tone(buzzerPin, 1318, 150);
     delay(175);
-    tone(buzzerPin, 1567, 150); // G6
+    tone(buzzerPin, 1567, 150);
     delay(175);
-    tone(buzzerPin, 2637, 150); // E7
+    tone(buzzerPin, 2637, 150);
     delay(175);
-    tone(buzzerPin, 2093, 150); // C7
+    tone(buzzerPin, 2093, 150);
     delay(175);
-    tone(buzzerPin, 2349, 150); // D7
+    tone(buzzerPin, 2349, 150);
     delay(175);
-    tone(buzzerPin, 3135, 500); // G7
+    tone(buzzerPin, 3135, 500);
     delay(500);
 
     while (true)
     {
-    } // Get stuck in this loop forever
+    } // Loop indefinitely
 }

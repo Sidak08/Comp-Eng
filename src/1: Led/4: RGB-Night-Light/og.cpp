@@ -1,10 +1,8 @@
 #include <Arduino.h>
 
-// Define the analog input pins
-const int photoresistorPin = 32; // Photoresistor connected to GPIO32
-const int potentiometerPin = 34; // Potentiometer connected to GPIO34
-
-// Define the LED pins
+// Pins
+const int photoresistorPin = 32;
+const int potentiometerPin = 34;
 const int RedPin = 22;
 const int GreenPin = 23;
 const int BluePin = 21;
@@ -12,13 +10,14 @@ const int BluePin = 21;
 // Threshold for the photoresistor
 const int threshold = 3500;
 
-// PWM channel and resolution settings
-const int pwmFreq = 5000;    // PWM frequency
-const int pwmResolution = 8; // 8-bit resolution (0-255)
-const int RedChannel = 0;    // PWM channel for Red LED
-const int GreenChannel = 1;  // PWM channel for Green LED
-const int BlueChannel = 2;   // PWM channel for Blue LED
+// PWM settings
+const int pwmFreq = 5000;
+const int pwmResolution = 8; // 0-255
+const int RedChannel = 0;
+const int GreenChannel = 1;
+const int BlueChannel = 2;
 
+// Color function declarations
 void red();
 void orange();
 void yellow();
@@ -30,10 +29,10 @@ void turnOff();
 
 void setup()
 {
-    Serial.begin(9600); // Start a serial connection
+    Serial.begin(9600);
     Serial.println("Starting setup...");
 
-    // Configure the LED pins as PWM outputs
+    // Configure LED pins as PWM outputs
     ledcSetup(RedChannel, pwmFreq, pwmResolution);
     ledcAttachPin(RedPin, RedChannel);
     Serial.println("Red LED configured.");
@@ -51,11 +50,10 @@ void setup()
 
 void loop()
 {
-    // Read the photoresistor and potentiometer values
+    // Read sensors
     int photoresistor = analogRead(photoresistorPin);
     int potentiometer = analogRead(potentiometerPin);
 
-    // Log the sensor values
     Serial.print("Photoresistor value: ");
     Serial.print(photoresistor);
     Serial.print("  Potentiometer value: ");
@@ -63,7 +61,7 @@ void loop()
 
     if (photoresistor > threshold)
     {
-        // If it's dark, turn on the LED
+        // Dark environment - turn on LED
         Serial.println("It's dark. Turning on the LED...");
         if (potentiometer > 0 && potentiometer <= 150)
         {
@@ -103,15 +101,15 @@ void loop()
     }
     else
     {
-        // If it's not dark, turn off the LED
+        // Bright environment - turn off LED
         Serial.println("It's bright. Turning off the LED...");
         turnOff();
     }
 
-    delay(100); // Short delay for readability
+    delay(100);
 }
 
-// Functions to set LED colors using PWM
+// Color functions
 void red()
 {
     ledcWrite(RedChannel, 255);

@@ -1,55 +1,46 @@
-/*
-  SparkFun Inventor's Kit - Modified for ESP32
-  Circuit 3A-Servo
-
-  Move a servo based on potentiometer position.
-
-  This sketch was adapted for ESP32 from the original SparkFun code.
-*/
+// ESP32 Servo Control with Potentiometer
+// Controls a servo motor position based on potentiometer input
 #include <Arduino.h>
 #include <ESP32Servo.h> // ESP32 servo library
 
-// ESP32 pin assignments
-const int potPin = 34;   // GPIO34 for potentiometer (analog input)
-const int servoPin = 23; // GPIO23 for servo control
+// Pin definitions
+const int potPin = 34;   // Potentiometer input
+const int servoPin = 23; // Servo control
 
-int potPosition;   // this variable will store the position of the potentiometer
-int servoPosition; // the servo will move to this position
+int potPosition;   // Potentiometer reading
+int servoPosition; // Servo angle (degrees)
 
-Servo myservo; // create a servo object
+Servo myservo;
 
 void setup()
 {
-    Serial.begin(115200); // Initialize serial for debugging
+    Serial.begin(115200);
     Serial.println("ESP32 Servo Control with Potentiometer");
 
-    // ESP32Servo library supports up to 16 servos
+    // Initialize servo timers
     ESP32PWM::allocateTimer(0);
     ESP32PWM::allocateTimer(1);
     ESP32PWM::allocateTimer(2);
     ESP32PWM::allocateTimer(3);
 
-    // Standard 50Hz servo
     myservo.setPeriodHertz(50);
-
-    // Attach the servo to the specified pin
-    myservo.attach(servoPin, 500, 2400); // Use wider pulse width range for better compatibility
+    myservo.attach(servoPin, 500, 2400);
 }
 
 void loop()
 {
-    potPosition = analogRead(potPin); // ESP32 has 12-bit ADC (0-4095)
-
-    // Map potentiometer value to servo angle (avoiding extremes)
+    // Read potentiometer and map to servo position
+    potPosition = analogRead(potPin);
     servoPosition = map(potPosition, 0, 4095, 20, 160);
-
+    
+    // Move servo to calculated position
     myservo.write(servoPosition);
 
-    // Print values for debugging
+    // Output values to serial
     Serial.print("Pot: ");
     Serial.print(potPosition);
     Serial.print(" Servo: ");
     Serial.println(servoPosition);
 
-    delay(15); // Small delay for stability
+    delay(15);
 }

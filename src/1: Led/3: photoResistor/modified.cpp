@@ -7,7 +7,7 @@ const int ledPin = 13;           // Digital output to LED
 const int servoPin = 26;         // Servo control pin
 
 // Threshold setting
-int threshold = 700; // Adjust based on your environment
+int threshold = 700; // Light threshold for LED control
 
 // Variables for readings
 int photoresistorValue = 0; // Raw photoresistor reading
@@ -24,17 +24,17 @@ Servo myServo;
 
 void setup()
 {
-    Serial.begin(9600); // Match this to your terminal setting
+    Serial.begin(9600);
     delay(1000);        // Wait for serial to initialize
 
     // Configure pins
-    pinMode(ledPin, OUTPUT);   // Configure LED pin as output
+    pinMode(ledPin, OUTPUT);
     digitalWrite(ledPin, LOW); // Start with LED off
 
     // Attach servo
     myServo.attach(servoPin);
     myServo.write(90); // Start at center position
-    delay(500);        // Give servo time to move to initial position
+    delay(500);
 
     Serial.println("Photoresistor LED and Servo Controller Ready");
 }
@@ -44,25 +44,23 @@ void loop()
     // Read the photoresistor
     photoresistorValue = analogRead(photoresistorPin);
 
-    // Print the current reading
     Serial.println(photoresistorValue);
 
     // Control LED based on threshold
     if (photoresistorValue < threshold)
     {
-        digitalWrite(ledPin, HIGH); // Turn on LED when darker than threshold
+        digitalWrite(ledPin, HIGH); // Turn on LED when darker
     }
     else
     {
-        digitalWrite(ledPin, LOW); // Turn off LED when brighter than threshold
+        digitalWrite(ledPin, LOW); // Turn off LED when brighter
     }
 
     // Map photoresistor value to servo position
     servoPosition = map(photoresistorValue, minLightValue, maxLightValue, minServoAngle, maxServoAngle);
     servoPosition = constrain(servoPosition, minServoAngle, maxServoAngle);
 
-    // Move servo to position
     myServo.write(servoPosition);
 
-    delay(100); // Short delay for stability
+    delay(100);
 }

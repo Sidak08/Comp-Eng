@@ -1,23 +1,18 @@
-/*
-  ESP32 Servo Control with Potentiometer and 7-Segment Display
-
-  This sketch controls a servo based on potentiometer position
-  and shows the current angle on a 7-segment display.
-*/
+// ESP32 Servo Control with Potentiometer and 7-Segment Display
+// Controls servo position based on potentiometer and displays angle on 7-segment display
 
 #include <Arduino.h>
 #include <ESP32Servo.h>
 
-// Pin assignments
-const int potPin = 34;   // GPIO34 for potentiometer (analog input)
-const int servoPin = 23; // GPIO23 for servo control
+// Pin definitions
+const int potPin = 34;   // Potentiometer input
+const int servoPin = 23; // Servo control
 
-// 7-segment display pins (adjust these based on your wiring)
+// 7-segment display pins
 const int segmentPins[7] = {13, 12, 14, 27, 26, 25, 33}; // a,b,c,d,e,f,g
-const int digitPin = 9;                                  // Common pin (for common cathode use HIGH, for common anode use LOW)
+const int digitPin = 9;                                  // Common pin
 
-// Define the segment patterns for numbers 0-9
-// Segments:    a  b  c  d  e  f  g
+// Segment patterns for 0-9
 byte digits[10][7] = {
     {1, 1, 1, 1, 1, 1, 0}, // 0
     {0, 1, 1, 0, 0, 0, 0}, // 1
@@ -31,11 +26,11 @@ byte digits[10][7] = {
     {1, 1, 1, 1, 0, 1, 1}  // 9
 };
 
-int potPosition;   // Store potentiometer position
-int servoPosition; // Servo position (angle)
-int displayValue;  // Value to display (0-9)
+int potPosition;   // Potentiometer reading
+int servoPosition; // Servo angle
+int displayValue;  // Display value (0-9)
 
-bool isCommonCathode = true; // Set to false for common anode display
+bool isCommonCathode = true; // Display type
 
 Servo myservo;
 
@@ -47,7 +42,7 @@ void setup()
     Serial.begin(115200);
     Serial.println("ESP32 Servo Control with 7-Segment Display");
 
-    // Set up servo
+    // Initialize servo
     ESP32PWM::allocateTimer(0);
     ESP32PWM::allocateTimer(1);
     ESP32PWM::allocateTimer(2);
@@ -56,16 +51,16 @@ void setup()
     myservo.setPeriodHertz(50);
     myservo.attach(servoPin, 500, 2400);
 
-    // Set up 7-segment display pins
+    // Initialize display segments
     for (int i = 0; i < 7; i++)
     {
         pinMode(segmentPins[i], OUTPUT);
-        digitalWrite(segmentPins[i], isCommonCathode ? LOW : HIGH); // Turn off all segments
+        digitalWrite(segmentPins[i], isCommonCathode ? LOW : HIGH);
     }
 
-    // Set common pin
+    // Initialize common pin
     pinMode(digitPin, OUTPUT);
-    digitalWrite(digitPin, isCommonCathode ? HIGH : LOW); // Turn on the digit
+    digitalWrite(digitPin, isCommonCathode ? HIGH : LOW);
 
     // Display '0' initially
     displayDigit(0);
@@ -73,24 +68,20 @@ void setup()
 
 void loop()
 {
-    // Read potentiometer value
+    // Read and map potentiometer to servo position
     potPosition = analogRead(potPin);
-
-    // Map to servo range (20-160 degrees)
     servoPosition = map(potPosition, 0, 4095, 20, 160);
-
-    // Move servo
     myservo.write(servoPosition);
 
-    // Calculate display value (divide by 10 to get tens digit: 0-9 for 0-90 degrees)
-    displayValue = servoPosition / 20; // This will give 1-8 for the range 20-160
+    // Calculate display value and constrain to 0-9
+    displayValue = servoPosition / 20;
     if (displayValue > 9)
-        displayValue = 9; // Keep in single digit range
+        displayValue = 9;
 
     // Update display
     displayDigit(displayValue);
 
-    // Debug output
+    // Output values to serial
     Serial.print("Pot: ");
     Serial.print(potPosition);
     Serial.print(" | Servo: ");
@@ -99,29 +90,23 @@ void loop()
     Serial.println(displayValue);
 
     delay(100);
+    delay(100);
 }
 
-// Function to display a digit on the 7-segment display
+// Display a digit (0-9) on the 7-segment display
 void displayDigit(int num)
 {
     if (num < 0 || num > 9)
-        return; // Only handle 0-9
+        return;
 
     for (int i = 0; i < 7; i++)
     {
-        // Set the correct state based on display type
-        if (isCommonCathode)
-        {
-            digitalWrite(segmentPins[i], digits[num][i]);
-        }
-        else
-        {
-            digitalWrite(segmentPins[i], !digits[num][i]); // Inverted logic for common anode
-        }
+        digitalWrite(segmentPins[i], isCommonCathode ? 
+                    digits[num][i] : !digits[num][i]);
     }
 }
 
-// Function to clear the display
+// Clear the display
 void clearDisplay()
 {
     for (int i = 0; i < 7; i++)
