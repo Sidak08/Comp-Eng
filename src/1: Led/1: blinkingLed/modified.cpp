@@ -8,7 +8,7 @@ const int whiteLedPin = 19;
 
 void setup()
 {
-    // Set all LED pins to output mode
+    // Set all LED pins to output mode let see if it changes
     pinMode(redPin, OUTPUT);
     pinMode(bluePin, OUTPUT);
     pinMode(greenPin, OUTPUT);
