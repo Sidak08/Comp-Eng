@@ -1,24 +1,19 @@
-// ESP32 Heads Up Game
-// Shows random animal words on LCD with button input to advance
-// Player holds LCD away from them while others give clues
+
 
 #include <Arduino.h>
-#include <LiquidCrystal.h> // Library for controlling LCD display
+#include <LiquidCrystal.h>
 
-// LCD pin connections (RS, EN, D4, D5, D6, D7)
 LiquidCrystal lcd(13, 12, 14, 27, 26, 25);
 
-// Pin definitions
-const int buttonPin = 22; // Button input
-const int buzzerPin = 23; // Buzzer output
-int buttonPressTime = 0;  // Button timing
+const int buttonPin = 22;
+const int buzzerPin = 23;
+int buttonPressTime = 0;
 
-long timeLimit = 15000; // Time limit for the player to guess each word (15 seconds)
-long startTime = 0;     // Used to measure time that has passed for each word
-int roundNumber = 0;    // Keeps track of the roundNumber so that it can be displayed at the end of the game
+long timeLimit = 15000;
+long startTime = 0;
+int roundNumber = 0;
 const int arraySize = 25;
 
-// Animal word list
 const char *words[arraySize] = {
     "moose", "beaver", "bear", "goose", "dog",
     "cat", "squirrel", "bird", "elephant", "horse",
@@ -26,7 +21,6 @@ const char *words[arraySize] = {
     "turtle", "whale", "rhino", "lion", "monkey",
     "frog", "alligator", "kangaroo", "hippo", "rabbit"};
 
-// Array to hold randomized sequence of word indices
 int sequence[arraySize];
 
 // Function prototypes
@@ -42,15 +36,12 @@ void setup()
     lcd.begin(16, 2);
 
     Serial.begin(9600);
-    Serial.println("ESP32 Heads Up Game");
 
-    // Initialize sequence array
     for (int i = 0; i < arraySize; i++)
     {
         sequence[i] = -1;
     }
 
-    // Initialize random generator
     randomSeed(analogRead(34));
 
     generateRandomOrder();
@@ -67,15 +58,9 @@ void loop()
         lcd.print(roundNumber);
         lcd.print(": ");
         lcd.print(words[sequence[i]]);
-
-        Serial.print("Round ");
-        Serial.print(roundNumber);
-        Serial.print(": ");
-        Serial.println(words[sequence[i]]);
-
         startTime = millis();
 
-        // Wait for button press or timeout
+
         while (digitalRead(buttonPin) == HIGH)
         {
             int roundedTime = round((timeLimit - (millis() - startTime)) / 1000);
@@ -85,29 +70,24 @@ void loop()
             lcd.print(roundedTime);
             delay(15);
 
-            // Check for timeout
             if (millis() - startTime > timeLimit)
             {
                 gameOver();
             }
 
-            // Button feedback
             if (digitalRead(buttonPin) == LOW)
             {
                 tone(buzzerPin, 272, 10);
             }
         }
 
-        delay(500); // Debounce delay
+        delay(500);
     }
 
-    // All words completed successfully
     winner();
 }
 
-//--------------FUNCTIONS------------------------------
 
-// Game startup sequence with countdown
 void showStartSequence()
 {
     lcd.clear();
@@ -134,41 +114,37 @@ void showStartSequence()
     delay(1000);
 }
 
-// Create randomized word order sequence
 void generateRandomOrder()
 {
     Serial.println("Generating random order...");
 
     for (int i = 0; i < arraySize; i++)
-    {                          // Fill all 25 positions
-        int currentNumber = 0; // Variable to hold the current number
-        boolean match = false; // Does currentNumber match any previous numbers?
+    {
+        int currentNumber = 0;
+        boolean match = false;
 
-        // Generate random numbers until we get one that doesn't match any in the array
         do
         {
-            currentNumber = random(0, arraySize); // Generate a random number from 0 to 24
-            match = false;                        // Start by assuming it doesn't match
+            currentNumber = random(0, arraySize);
+            match = false;
 
-            // Check against all numbers already in the sequence
             for (int j = 0; j < arraySize; j++)
             {
                 if (currentNumber == sequence[j])
                 {
-                    match = true; // If it matches, set match flag
-                    break;        // No need to check further
+                    match = true;
+                    break;
                 }
             }
-        } while (match == true); // Try again if we found a match
+        } while (match == true);
 
-        sequence[i] = currentNumber; // Add unique number to sequence
-        Serial.print(sequence[i]);   // Debug: print the sequence
+        sequence[i] = currentNumber;
+        Serial.print(sequence[i]);
         Serial.print(" ");
     }
-    Serial.println(); // End of sequence debug output
+    Serial.println();
 }
 
-// Handle game over condition
 void gameOver()
 {
     lcd.clear();
@@ -181,7 +157,6 @@ void gameOver()
     Serial.print("Game Over! Final Score: ");
     Serial.println(roundNumber);
 
-    // Play lose melody
     tone(buzzerPin, 130, 250);
     delay(275);
     tone(buzzerPin, 73, 250);
@@ -193,10 +168,9 @@ void gameOver()
 
     while (true)
     {
-    } // Loop indefinitely
+    }
 }
 
-// Handle game win condition
 void winner()
 {
     lcd.clear();
@@ -207,7 +181,6 @@ void winner()
 
     Serial.println("YOU WIN!");
 
-    // Play win melody
     tone(buzzerPin, 1318, 150);
     delay(175);
     tone(buzzerPin, 1567, 150);
@@ -223,5 +196,5 @@ void winner()
 
     while (true)
     {
-    } // Loop indefinitely
+    }
 }

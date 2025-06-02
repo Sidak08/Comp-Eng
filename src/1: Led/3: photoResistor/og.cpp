@@ -1,39 +1,37 @@
 #include <Arduino.h>
 
-// Pin definitions
-const int photoresistorPin = 32; // Analog input from photoresistor
-const int ledPin = 13;           // Digital output to LED
+
+const int photoresistorPin = 32; // photoresistor
+const int ledPin = 13;           // LED
 
 // Threshold setting
-int threshold = 600; // Light threshold for LED control
+int threshold = 600;
 
 // Variable for reading
-int photoresistorValue = 0; // Raw photoresistor reading
+int photoresistorValue = 0;
 
 void setup()
 {
     Serial.begin(9600);
-    delay(1000);               // Wait for serial to initialize
+    delay(1000);
     pinMode(ledPin, OUTPUT);
-    digitalWrite(ledPin, LOW); // Start with LED off
+    digitalWrite(ledPin, LOW);
     Serial.println("Photoresistor LED Controller Ready");
 }
 
 void loop()
 {
-    // Read the photoresistor
     photoresistorValue = analogRead(photoresistorPin);
 
     Serial.println(photoresistorValue);
 
-    // Control LED based on threshold
     if (photoresistorValue < threshold)
     {
-        digitalWrite(ledPin, HIGH); // Turn on LED when darker
+        digitalWrite(ledPin, HIGH);
     }
     else
     {
-        digitalWrite(ledPin, LOW); // Turn off LED when brighter
+        digitalWrite(ledPin, LOW);
     }
 
     delay(100);

@@ -1,18 +1,14 @@
-// ESP32 Servo Control with Potentiometer and 7-Segment Display
-// Controls servo position based on potentiometer and displays angle on 7-segment display
-
 #include <Arduino.h>
 #include <ESP32Servo.h>
 
-// Pin definitions
-const int potPin = 34;   // Potentiometer input
-const int servoPin = 23; // Servo control
+
+const int potPin = 34;
+const int servoPin = 23;
 
 // 7-segment display pins
 const int segmentPins[7] = {13, 12, 14, 27, 26, 25, 33}; // a,b,c,d,e,f,g
-const int digitPin = 9;                                  // Common pin
+const int digitPin = 9;
 
-// Segment patterns for 0-9
 byte digits[10][7] = {
     {1, 1, 1, 1, 1, 1, 0}, // 0
     {0, 1, 1, 0, 0, 0, 0}, // 1
@@ -26,11 +22,11 @@ byte digits[10][7] = {
     {1, 1, 1, 1, 0, 1, 1}  // 9
 };
 
-int potPosition;   // Potentiometer reading
-int servoPosition; // Servo angle
-int displayValue;  // Display value (0-9)
+int potPosition;
+int servoPosition;
+int displayValue;
 
-bool isCommonCathode = true; // Display type
+bool isCommonCathode = true;
 
 Servo myservo;
 
@@ -40,9 +36,7 @@ void clearDisplay();
 void setup()
 {
     Serial.begin(115200);
-    Serial.println("ESP32 Servo Control with 7-Segment Display");
 
-    // Initialize servo
     ESP32PWM::allocateTimer(0);
     ESP32PWM::allocateTimer(1);
     ESP32PWM::allocateTimer(2);
@@ -68,32 +62,20 @@ void setup()
 
 void loop()
 {
-    // Read and map potentiometer to servo position
     potPosition = analogRead(potPin);
     servoPosition = map(potPosition, 0, 4095, 20, 160);
     myservo.write(servoPosition);
 
-    // Calculate display value and constrain to 0-9
     displayValue = servoPosition / 20;
     if (displayValue > 9)
         displayValue = 9;
 
-    // Update display
     displayDigit(displayValue);
-
-    // Output values to serial
-    Serial.print("Pot: ");
-    Serial.print(potPosition);
-    Serial.print(" | Servo: ");
-    Serial.print(servoPosition);
-    Serial.print(" | Display: ");
-    Serial.println(displayValue);
 
     delay(100);
     delay(100);
 }
 
-// Display a digit (0-9) on the 7-segment display
 void displayDigit(int num)
 {
     if (num < 0 || num > 9)
@@ -101,7 +83,7 @@ void displayDigit(int num)
 
     for (int i = 0; i < 7; i++)
     {
-        digitalWrite(segmentPins[i], isCommonCathode ? 
+        digitalWrite(segmentPins[i], isCommonCathode ?
                     digits[num][i] : !digits[num][i]);
     }
 }

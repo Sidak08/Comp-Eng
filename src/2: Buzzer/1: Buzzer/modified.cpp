@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-// Pin definitions
 int speakerPin = 25; // Buzzer pin
 const int buttonPin = 13; // Button pin
 
@@ -10,7 +9,6 @@ void setup()
 {
     Serial.begin(9600);
     pinMode(speakerPin, OUTPUT);
-    Serial.println("ESP32 started");
     pinMode(buttonPin, INPUT);
 }
 
@@ -61,14 +59,14 @@ void loop()
 void play(char note, int beats)
 {
     int numNotes = 14; // Number of notes in array
-    
+
     // Arrays for note lookup
     char notes[] = {'c', 'd', 'e', 'f', 'g', 'a', 'b', 'C', 'D', 'E', 'F', 'G', 'A', 'B', ' '};
     int frequencies[] = {131, 147, 165, 175, 196, 220, 247, 262, 294, 330, 349, 392, 440, 494, 0};
 
     int currentFrequency = 0;
-    int beatLength = 150; // Beat duration in milliseconds
-    
+    int beatLength = 150;
+
     // Find the matching frequency for the note
     for (int i = 0; i < numNotes; i++)
     {
@@ -78,10 +76,7 @@ void play(char note, int beats)
         }
     }
 
-    // Play the note
     tone(speakerPin, currentFrequency, beats * beatLength);
     delay(beats * beatLength);
     delay(50); // Small delay between notes
 }
-
-// Notes in C major: lowercase = lower octave, uppercase = higher octave

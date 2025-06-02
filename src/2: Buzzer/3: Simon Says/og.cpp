@@ -1,25 +1,21 @@
-// ESP32 Simon Says Game
-// The Simon Says game flashes a pattern using LED lights, then the player must repeat the pattern.
-
 #include <Arduino.h>
 
-// Pin definitions for buttons, LEDs and buzzer
 int button[] = {4, 13, 14, 33}; // Red, yellow, green, blue buttons
 int led[] = {5, 12, 18, 22};    // Red, yellow, green, blue LEDs
 int tones[] = {262, 330, 392, 494}; // C, E, G, B notes
 
-int roundsToWin = 10;   // Number of rounds needed to win
-int buttonSequence[16]; // Sequence the player needs to remember
+int roundsToWin = 10;
+int buttonSequence[16];
 
-int buzzerPin = 25;     // Buzzer output pin
+int buzzerPin = 25;
 
-int pressedButton = 4;  // 4 = no button pressed
-int roundCounter = 1;   // Current game round
+int pressedButton = 4;
+int roundCounter = 1;
 
-long startTime = 0;     // Timer for button press limit
-long timeLimit = 2000;  // Time limit in milliseconds
+long startTime = 0;
+long timeLimit = 2000;
 
-boolean gameStarted = false; // Control game start sequence
+boolean gameStarted = false;
 
 void flashLED(int ledNumber);
 void allLEDoff();
@@ -30,41 +26,37 @@ void loseSequence();
 
 void setup()
 {
-  // Configure button pins with internal pull-up resistors
   pinMode(button[0], INPUT_PULLUP);
   pinMode(button[1], INPUT_PULLUP);
   pinMode(button[2], INPUT_PULLUP);
   pinMode(button[3], INPUT_PULLUP);
 
-  // Configure LED pins as outputs
   pinMode(led[0], OUTPUT);
   pinMode(led[1], OUTPUT);
   pinMode(led[2], OUTPUT);
   pinMode(led[3], OUTPUT);
 
-  pinMode(buzzerPin, OUTPUT); // Configure buzzer pin
+  pinMode(buzzerPin, OUTPUT);
 }
 
 void loop()
 {
   if (gameStarted == false)
   {
-    startSequence();    // Play start sequence
-    roundCounter = 0;   // Reset round counter
-    delay(1500);        // Wait before starting game
+    startSequence();
+    roundCounter = 0;
+    delay(1500);
     gameStarted = true;
   }
 
-  // Flash the sequence to be repeated
   for (int i = 0; i <= roundCounter; i++)
   {
-    flashLED(buttonSequence[i]); // Flash LED and play tone
+    flashLED(buttonSequence[i]);
     delay(200);
     allLEDoff();
     delay(200);
   }
 
-  // Check player's button presses against the sequence
   for (int i = 0; i <= roundCounter; i++)
   {
     startTime = millis();
@@ -94,7 +86,6 @@ void loop()
         allLEDoff();
       }
 
-      // Check time limit
       if (millis() - startTime > timeLimit)
       {
         loseSequence();
@@ -105,27 +96,23 @@ void loop()
 
   if (gameStarted == true)
   {
-    roundCounter++; // Increment round counter
+    roundCounter++;
 
     if (roundCounter >= roundsToWin)
     {
-      winSequence(); // Player won the game
+      winSequence();
     }
 
-    delay(500); // Brief pause between rounds
+    delay(500);
   }
 }
 
-//----------FUNCTIONS------------
-
-// Flash LED and play corresponding tone
 void flashLED(int ledNumber)
 {
   digitalWrite(led[ledNumber], HIGH);
   tone(buzzerPin, tones[ledNumber]);
 }
 
-// Turn all LEDs off and stop sound
 void allLEDoff()
 {
   digitalWrite(led[0], LOW);
@@ -135,7 +122,6 @@ void allLEDoff()
   noTone(buzzerPin);
 }
 
-// Check which button is currently pressed
 int buttonCheck()
 {
   if (digitalRead(button[0]) == LOW)
@@ -147,51 +133,43 @@ int buttonCheck()
   else if (digitalRead(button[3]) == LOW)
     return 3;
   else
-    return 4; // No button pressed
+    return 4;
 }
 
-// Game start sequence
 void startSequence()
 {
-  // Generate random pattern
   randomSeed(analogRead(A0));
-  
+
   for (int i = 0; i <= roundsToWin; i++)
   {
     buttonSequence[i] = round(random(0, 4));
   }
 
-  // Flash startup animation
   for (int i = 0; i <= 3; i++)
   {
     tone(buzzerPin, tones[i], 200);
 
-    // Turn all LEDs on
     for (int j = 0; j < 4; j++) {
       digitalWrite(led[j], HIGH);
     }
-    
+
     delay(100);
-    
-    // Turn all LEDs off
+
     for (int j = 0; j < 4; j++) {
       digitalWrite(led[j], LOW);
     }
-    
+
     delay(100);
   }
 }
 
-// Game win sequence
 void winSequence()
 {
-  // Turn all LEDs on
   for (int j = 0; j <= 3; j++)
   {
     digitalWrite(led[j], HIGH);
   }
 
-  // Play win melody
   tone(buzzerPin, 1318, 150);
   delay(175);
   tone(buzzerPin, 1567, 150);
@@ -205,7 +183,6 @@ void winSequence()
   tone(buzzerPin, 3135, 500);
   delay(500);
 
-  // Wait for button press to restart
   do
   {
     pressedButton = buttonCheck();
@@ -218,13 +195,10 @@ void winSequence()
 // Game lose sequence
 void loseSequence()
 {
-  // Turn all LEDs on
   for (int j = 0; j <= 3; j++)
   {
     digitalWrite(led[j], HIGH);
   }
-
-  // Play lose melody
   tone(buzzerPin, 130, 250);
   delay(275);
   tone(buzzerPin, 73, 250);
@@ -234,7 +208,6 @@ void loseSequence()
   tone(buzzerPin, 98, 500);
   delay(500);
 
-  // Wait for button press to restart
   do
   {
     pressedButton = buttonCheck();
