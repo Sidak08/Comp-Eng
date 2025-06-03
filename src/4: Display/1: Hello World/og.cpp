@@ -1,12 +1,7 @@
 #include <Arduino.h>
 #include <LiquidCrystal.h>
 
-const int rs = 13; // Register Select
-const int en = 12; // Enable
-const int d4 = 14; // Data pin 4
-const int d5 = 27; // Data pin 5
-const int d6 = 26; // Data pin 6
-const int d7 = 25; // Data pin 7
+// Data pin 7
 
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
