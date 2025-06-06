@@ -30,9 +30,9 @@ nighlight (input)
 GPIO33.
 
 #LEDs (output)
-GPIO19
-GPIO2
-GPIO4
-GPIO5
-GPIO15
-GPIO18
+GPIO19 red
+GPIO2 green
+GPIO4 yellow
+GPIO5 red
+GPIO15 yellow
+GPIO18 green
