@@ -1,0 +1,38 @@
+#left
+GPIO34
+
+#pedestrian
+GPIO32
+GPIO21
+
+#Emergency use only
+TX
+RX
+GPIO0
+
+speed checker (input)
+GPIO22
+GPIO23
+
+input/touch (input)
+vp
+vn
+
+#screen (ouput)
+GPIO13,
+GPIO12,
+GPIO14,
+GPIO27,
+GPIO26,
+GPIO25
+
+nighlight (input)
+GPIO33.
+
+#LEDs (output)
+GPIO19
+GPIO2
+GPIO4
+GPIO5
+GPIO15
+GPIO18
