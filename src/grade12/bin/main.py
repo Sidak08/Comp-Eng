@@ -1,12 +1,12 @@
 
 inp = input("enter a string: ")
-converted = ""
+converted = []
 
 for i in range(len(inp)):
-    converted += str(bin((ord(inp[i]))))[2:]
-    converted += " "
+    converted.append(list(bin((ord(inp[i]))))[2:])
 
-print(converted)
+
+print(list(converted))
 
 # enter a string: Sidak Singh
 # 1010011 1101001 1100100 1100001 1101011 100000 1010011 1101001 1101110 1100111 1101000
