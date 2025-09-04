@@ -9,12 +9,12 @@ int pin8 = 6;
 
 int buttonPin = 2;
 
-int name[5][7] = {
-  {1, 0, 1, 0, 0, 1, 1},
-  {1, 1, 0, 1, 0, 0, 1},
-  {1, 1, 0, 0, 1, 0, 0},
-  {1, 1, 0, 0, 0, 0, 1},
-  {1, 1, 0, 1, 0, 1, 1}
+int name[5][8] = {
+  {0, 1, 0, 1, 0, 0, 1, 1},
+  {0, 1, 1, 0, 1, 0, 0, 1},
+  {0, 1, 1, 0, 0, 1, 0, 0},
+  {0, 1, 1, 0, 0, 0, 0, 1},
+  {0, 1, 1, 0, 1, 0, 1, 1}
 };
 
 int pins[8] = {pin1, pin2, pin3, pin4, pin5, pin6, pin7, pin8};
@@ -23,23 +23,17 @@ int currentPattern = 0;
 bool lastButtonState = HIGH;
 bool buttonState = HIGH;
 
-void setup()
-{
-  pinMode(pin1, OUTPUT);
-  pinMode(pin2, OUTPUT);
-  pinMode(pin3, OUTPUT);
-  pinMode(pin4, OUTPUT);
-  pinMode(pin5, OUTPUT);
-  pinMode(pin6, OUTPUT);
-  pinMode(pin7, OUTPUT);
-  pinMode(pin8, OUTPUT);
+void setup() {
+  for (int i = 0; i < 8; i++) {
+    pinMode(pins[i], OUTPUT);
+  }
 
   pinMode(buttonPin, INPUT_PULLUP);
 
   displayPattern(currentPattern);
 }
 
-void loop(){
+void loop() {
   buttonState = digitalRead(buttonPin);
 
   if (lastButtonState == HIGH && buttonState == LOW) {
@@ -58,12 +52,6 @@ void loop(){
 
 void displayPattern(int patternIndex) {
   for (int k = 0; k < 8; k++) {
-    digitalWrite(pins[k], LOW);
+    digitalWrite(pins[k], name[patternIndex][k]);
   }
-
-  for (int j = 0; j < 7; j++) {
-    digitalWrite(pins[j], name[patternIndex][j]);
-  }
-
-  digitalWrite(pin8, LOW);
 }
